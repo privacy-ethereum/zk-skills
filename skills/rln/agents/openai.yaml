@@ -1,0 +1,4 @@
+interface:
+  display_name: "RLN"
+  short_description: "Route between audited RLN and RLN V3, then build anonymous rate-limiting and spam-deterrence flows."
+  default_prompt: "Use this skill to route between audited RLN and RLN V3, then help design, build, or debug anonymous rate-limited messaging, posting, API access, or spam deterrence."

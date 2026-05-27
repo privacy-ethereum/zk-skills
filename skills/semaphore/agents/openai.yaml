@@ -1,0 +1,4 @@
+interface:
+  display_name: "Semaphore"
+  short_description: "Build anonymous group membership, voting, feedback, and nullifier-based apps with Semaphore V4."
+  default_prompt: "Use this skill to help build, adapt, or debug a Semaphore V4 application with identities, groups, proofs, scopes, and nullifiers."

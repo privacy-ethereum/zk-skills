@@ -1,0 +1,4 @@
+interface:
+  display_name: "TLSNotary"
+  short_description: "Build and debug TLSNotary agent workflows and extension plugins."
+  default_prompt: "Use this skill to help build a TLSNotary proof workflow or extension plugin for a web service."
