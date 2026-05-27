@@ -25,7 +25,3 @@ skills/
 ```
 
 Each `SKILL.md` is written for immediate agent use: when to apply the tool, what to check before coding, how to implement common app patterns, and what to verify before shipping.
-
-## Status
-
-This is an early skill set focused on practical app-building tasks. The first milestone covers TLSNotary, Semaphore, and RLN.
