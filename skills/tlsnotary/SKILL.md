@@ -23,6 +23,10 @@ The main current workflow is TLSNotary Extension plugin development: find an aut
 
 For detailed TLSNotary Extension plugin implementation patterns, read `references/plugin-development.md`.
 
+For one-shot plugin work, choose the most specific reference:
+
+- `references/curl-to-plugin.md`: convert DevTools cURL or a discovered request into plugin code, including SDK source, verifier/proxy config, handlers, security review, and troubleshooting.
+
 ## API Research
 
 Prefer a JSON endpoint over HTML. Look for a small authenticated GET or POST response that contains the exact user data to prove.
@@ -81,6 +85,8 @@ After verification, inspect all created or modified files for:
 - copied personal API responses.
 
 If any live secret or personal identifier appears in code, remove it before continuing.
+
+If `@tlsn/plugin-sdk` cannot be installed from npm, use `references/curl-to-plugin.md`: current upstream has the SDK inside the `tlsn-extension` monorepo. Do not spend time retrying npm until registry availability has been re-checked.
 
 ## Output Expectations
 

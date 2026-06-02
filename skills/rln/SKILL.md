@@ -15,6 +15,7 @@ This file is the routing layer. Pick the relevant version note before giving cod
 
 - `references/rln-audited.md`: audited RLN guidance for the established Circom implementation.
 - `references/rln-v3.md`: RLN V3 guidance for the Semaphore V4-based implementation with LeanIMT, EdDSA, Circom, and Noir paths.
+- `references/rln-implementation.md`: compact implementation card with payload shape, duplicate detection, audited/v3 notes, and tests.
 
 ## Version Routing
 
@@ -26,12 +27,16 @@ Use the audited RLN note when:
 - the task is a general RLN app and the user does not mention Semaphore V4, Noir, LeanIMT, or v3;
 - the user wants practical app guidance around registration, signaling, verification, duplicate detection, or slashing.
 
+For code-level planning on this route, also read `references/rln-implementation.md`.
+
 Use RLN V3 when:
 
 - the user explicitly mentions `rln-v3`, Semaphore V4, LeanIMT, EdDSA, Noir, browser benchmarks, or the Rate-Limiting-Nullifier/rln-v3 repository;
 - the user wants the newer Semaphore V4 group/identity structure;
 - the user wants to work with the Circom or Noir implementation in `rln-v3`;
 - the user wants benchmark or app guidance for the v3 repository.
+
+For code-level planning on this route, also read `references/rln-implementation.md`.
 
 If both versions fit, offer both directly:
 
@@ -43,12 +48,13 @@ If both versions fit, offer both directly:
 1. Clarify the abuse problem: spam, denial of service, anonymous posting limits, invite abuse, or rate-limited access.
 2. Decide whether RLN is the right primitive. Use RLN when the app needs anonymous membership plus per-epoch rate limiting or punishable spam. Use Semaphore when the app only needs one signal per scope. Use normal account or IP rate limiting when anonymity is not required.
 3. Route to audited RLN or RLN V3.
-4. Define the epoch: time window, block window, room window, topic window, or application-specific round.
-5. Define the rate limit: usually one message per epoch for simple RLN, or `messageLimit` slots when the chosen circuit/library supports it.
-6. Define registration: identity commitment or rate commitment, stake or no stake, group tree, member lifecycle, and withdrawal/removal path.
-7. Define signaling: message hash, epoch, external nullifier, proof payload, nullifier, share values, and verification endpoint.
-8. Define spam handling: duplicate detection, secret recovery if supported, slashing/removal/blocking behavior, and UX for honest users.
-9. Build the smallest verifiable prototype first, then add staking, decentralized storage, relays, or production circuits only after the core flow works.
+4. Read `references/rln-implementation.md` and use its field names at the app boundary.
+5. Define the epoch: time window, block window, room window, topic window, or application-specific round.
+6. Define the rate limit: usually one message per epoch for simple RLN, or `messageLimit` slots when the chosen circuit/library supports it.
+7. Define registration: identity commitment or rate commitment, stake or no stake, group tree, member lifecycle, and withdrawal/removal path.
+8. Define signaling: message hash, epoch, external nullifier, proof payload, nullifier, share values, and verification endpoint.
+9. Define spam handling with `references/rln-implementation.md`: duplicate evidence, secret recovery if supported, slashing/removal/blocking behavior, and UX for honest users.
+10. Build the smallest verifiable prototype first, then add staking, decentralized storage, relays, or production circuits only after the core flow works.
 
 ## Shared App Model
 
@@ -112,3 +118,5 @@ When building an RLN integration, produce:
 - audit status and privacy limitations.
 
 When only planning, produce the same information without code edits and clearly mark unknowns such as deployed contracts, proof artifact source, audit requirements, or slashing requirements.
+
+Before finishing implementation work, run the security, payload, duplicate, root, and epoch checks in `references/rln-implementation.md`.

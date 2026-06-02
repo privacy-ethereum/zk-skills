@@ -36,8 +36,11 @@ Current app-building should target Semaphore V4 unless the existing codebase alr
 - GitHub repository: https://github.com/semaphore-protocol/semaphore
 - Deployed contracts: https://docs.semaphore.pse.dev/deployed-contracts
 - CLI templates: `npx @semaphore-protocol/cli create my-app --template monorepo-ethers`
+- Implementation card: `references/semaphore-v4-implementation.md`
 
 ## Implementation Choices
+
+For one-shot app work, read `references/semaphore-v4-implementation.md` before writing code. It contains the verified V4 proof shape, off-chain verifier route, database constraints for used nullifiers, browser artifact notes, and required tests.
 
 Prefer `@semaphore-protocol/core` for new JavaScript or TypeScript app code when the app needs identity, group, and proof utilities together. Use the narrower packages when the codebase already imports them:
 
@@ -149,6 +152,8 @@ For application code, run the repository's normal typecheck and test commands. A
 - on-chain validation if contracts are touched.
 
 For contract code, run unit tests against both valid and invalid proofs when fixtures are available. If proof generation is slow in CI, keep at least one integration test and use deterministic fixtures for faster unit tests.
+
+Before finishing, run the security, duplicate-nullifier, root-freshness, and browser-artifact checks in `references/semaphore-v4-implementation.md`.
 
 ## Output Expectations
 
