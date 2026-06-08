@@ -104,7 +104,14 @@ Audited route:
 V3 route:
 
 - use only when the user asks for `rln-v3`, Semaphore V4, LeanIMT, EdDSA, Circom, Noir, Node, or browser benchmarks;
+- for app prototypes, prefer the Circom helper path first unless the user specifically asks for Noir;
 - inspect `browser/proof/generate-proof.ts`, `verify-proof.ts`, `hash.ts`, and `types.ts`;
+- build the V3 group over `rateCommitment = Poseidon(identityCommitment, userMessageLimit)`, not plain identity commitments;
+- pass an explicit Merkle proof and explicit artifact paths into proof generation;
+- treat V3 `scope` as the app's epoch-bound external-nullifier concept and derive it server-side;
+- after `verifyProof`, still validate root, message, scope/epoch, and `messageId` before accepting a signal;
+- keep LeanIMT proof length separate from circuit/artifact max depth;
+- for Noir, pin the tested toolchain before trying app work; local eval used `nargo 1.0.0-beta.3` and `bb 0.82.2`, while `nargo 1.0.0-beta.10` failed against current upstream dependencies;
 - treat repo code as reference/benchmark material, not a polished app SDK.
 
 ## Audited Circom RLN Proof Path
