@@ -13,6 +13,18 @@ Checked on 2026-06-02:
 - observed v3 proof shape includes `y`, `merkleTreeDepth`, `merkleTreeRoot`, `nullifier`, `message`, `scope`, and `points`;
 - v3 should still carry the caveat that its circuits have not been separately audited unless upstream docs change.
 
+## Completion Gate
+
+Do not describe a build as a working RLN app until accepted signals pass real proof verification for the selected route. Server counters, mock verifiers, hardcoded public outputs, client-claimed nullifiers, and fixture-only proof JSON can be used while scaffolding, but the final answer must mark the app incomplete if any of those still decide message acceptance.
+
+For an app-facing prototype, "real" means:
+
+- commitments are derived from private user secrets;
+- group membership/root data is used in proof generation;
+- proof generation runs against the selected circuit/artifact path;
+- verification runs before the signal is accepted;
+- duplicate detection uses verified public outputs, usually `(appId, epoch, nullifier)`, not profile IDs or client counters.
+
 ## App Payload
 
 Normalize implementation-specific values into this shape at the app boundary:
@@ -95,17 +107,31 @@ V3 route:
 - inspect `browser/proof/generate-proof.ts`, `verify-proof.ts`, `hash.ts`, and `types.ts`;
 - treat repo code as reference/benchmark material, not a polished app SDK.
 
-## Required Tests
+## Audited Circom RLN Proof Path
+
+For the audited route, prefer a Dockerized local proof path instead of host-global Circom/snarkjs installs:
+
+1. Pin and vendor or otherwise lock the audited `Rate-Limiting-Nullifier/circom-rln` source commit.
+2. Build Circom and `snarkjs` in a container.
+3. Compile the upstream `rln.circom` circuit without editing it unless the user asked for protocol work.
+4. Generate local eval proving artifacts for development, then export the verification key.
+5. In the app, generate the witness/proof for registered users and verify with `snarkjs.groth16.verify` before accepting a signal.
+6. Store duplicate evidence from the verified public outputs, including both conflicting messages or hashes, both shares, root, epoch, verifier version, and proof references.
+
+Local ptau/zkey artifacts are acceptable for development and evaluation, but do not present them as production trusted setup material. Production work needs a provenance story for circuit source, ptau, zkey, verification key, and verifier contract or backend verifier.
+
+## Behavioral Test Matrix
 
 - registered member proof is accepted;
-- non-member proof fails;
-- wrong epoch or external nullifier fails;
-- wrong message hash fails;
-- unknown or stale root fails;
 - first valid signal in an epoch is accepted;
-- second valid signal with the same `(appId, epoch, nullifier)` creates evidence;
-- same user in a new epoch is accepted when proof is valid for that epoch;
-- two honest users in the same epoch do not collide.
+- second valid signal with the same `(appId, epoch, nullifier)` is rejected or recorded as duplicate evidence;
+- same registered user in a new epoch is accepted when proof is valid for that epoch;
+- two registered users in the same epoch are both accepted when their valid public outputs do not collide;
+- unregistered or non-member user is rejected;
+- tampered proof is rejected;
+- tampered message, message hash, epoch, external nullifier, or root is rejected;
+- unknown or stale root is rejected or handled according to an explicitly documented root-sync policy;
+- mock verifier path, if present, cannot be the final acceptance path.
 
 ## Security Checks
 

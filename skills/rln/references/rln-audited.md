@@ -17,6 +17,7 @@ For app work:
 - keep the proof payload field names consistent across client, server, and contract code;
 - store duplicate-detection data with a unique constraint where possible;
 - avoid custom circuit changes unless the user explicitly asks for protocol work.
+- do not stop at a mock verifier; a finished audited-route app must verify real proofs before accepting messages.
 
 ## App Design Checklist
 
@@ -33,6 +34,7 @@ Before writing code, record:
 - behavior for valid first message, duplicate message, invalid proof, stale epoch, and unknown root;
 - storage needed for roots, members, nullifiers, shares, and slashing evidence;
 - privacy limits from metadata such as IPs, timestamps, relays, or small group size.
+- whether the current build is real-proof, eval-artifact-only, or mock-only. Mock-only must be reported as incomplete.
 
 ## Common App Patterns
 
@@ -67,6 +69,19 @@ Use a contract or registry where users submit commitments and stake. If duplicat
 7. Add the enforcement path: reject, block, remove, slash, or flag.
 8. Test valid first use, duplicate use, wrong epoch, wrong message hash, and non-member proofs.
 
+## Local Audited Proof Recipe
+
+For local prototypes, use a containerized audited Circom RLN path when practical:
+
+1. Pin the `Rate-Limiting-Nullifier/circom-rln` source commit and inspect `circuits/rln.circom`, upstream tests, and build scripts.
+2. Build Circom and `snarkjs` inside Docker or another isolated environment rather than requiring global host installs.
+3. Compile the upstream circuit and generate development proving artifacts.
+4. Export the verification key and wire `groth16.fullProve` plus `groth16.verify` into the app path.
+5. Accept a message only after verification succeeds and the root/epoch/message hash match the app's server-side expectations.
+6. Detect duplicates from verified public outputs, then store both conflicting signal records as evidence.
+
+Development ptau/zkey files are not production provenance. In final output, separate "real local proof verification works" from "production trusted setup and slashing are ready".
+
 ## Verification
 
 For an audited RLN integration, add tests for:
@@ -78,6 +93,8 @@ For an audited RLN integration, add tests for:
 - duplicate message or repeated slot detected;
 - different epoch accepted as a fresh rate window;
 - invalid message hash rejected;
+- tampered proof, epoch, root, or public output rejected;
+- multiple registered users can each use the same epoch without colliding;
 - slashing or blocking path triggered only with valid duplicate evidence.
 
 For security-sensitive work, also run dependency audits, inspect circuit/contract provenance, and verify that proof artifacts match the circuit and verifier used by the app.
@@ -85,3 +102,4 @@ For security-sensitive work, also run dependency audits, inspect circuit/contrac
 ## Output Expectations
 
 When using this route, include the implementation source, package versions or commits, proof format, verifier location, tests run, and any audit assumptions that matter for the app.
+If proof verification is still mocked, say the app is not yet a working RLN implementation and list the missing artifact or verifier work.

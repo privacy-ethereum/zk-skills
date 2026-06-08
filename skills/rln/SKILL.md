@@ -56,6 +56,21 @@ If both versions fit, offer both directly:
 9. Define spam handling with `references/rln-implementation.md`: duplicate evidence, secret recovery if supported, slashing/removal/blocking behavior, and UX for honest users.
 10. Build the smallest verifiable prototype first, then add staking, decentralized storage, relays, or production circuits only after the core flow works.
 
+## Working RLN App Definition
+
+An implementation is not a working RLN app merely because it has an anonymous-looking UI, server counters, or mock verification. To call the result working, the app must have:
+
+- a real registration or an explicit registration model that derives public commitments from private user secrets;
+- group or Merkle membership state and root handling;
+- epoch-bound signal generation with an app-specific identifier or external nullifier;
+- real proof generation against the selected audited or v3 circuit/artifact path;
+- real proof verification before accepting a signal;
+- nullifier/share handling from verified public outputs;
+- duplicate detection and evidence storage from RLN public outputs, not from user IDs or client claims;
+- behavioral tests for valid, duplicate, next-epoch, multi-user, non-member or invalid-proof, wrong-message or wrong-epoch, and stale-root cases.
+
+If a mock verifier, server-side counter, hardcoded proof, client-claimed nullifier, or fixture-only proof path remains, mark the implementation as incomplete. Mocks are acceptable only as temporary scaffolding while building the product shell or storage model.
+
 ## Shared App Model
 
 A practical RLN app has three phases:
@@ -77,6 +92,22 @@ Core values to keep straight:
 - `nullifier`: public value that lets verifiers associate duplicate use of the same rate slot without identifying honest users.
 
 Do not casually rename these values in code. RLN bugs often come from mixing up Semaphore-style nullifiers, app scopes, epochs, and RLN shares.
+
+## Product-Agnostic Lifecycle Checklist
+
+Every RLN app should make these components explicit, even if the product UX is domain-specific:
+
+- identity manager: creates, stores, imports, or receives private user secrets without logging live secrets;
+- commitment derivation: derives the public registration value with the selected implementation's expected hash/field format;
+- registration and group state: inserts commitments, tracks roots, and defines membership lifecycle;
+- epoch manager: derives the current rate-limit window server-side or validates it against a trusted source;
+- proof generator: creates proofs from message, epoch, membership path, and private secret;
+- verifier: rejects invalid proofs, stale roots, wrong message hashes, and wrong epochs before storage;
+- signal store: stores accepted verified signals and public outputs;
+- duplicate evidence store: stores both valid conflicting signals and proof metadata needed for later enforcement;
+- abuse response: defines reject, block, remove, slash, or flag behavior without confusing rejection with slashing.
+
+The UI does not need a prescribed design, but the app should expose or make clear registration status, current epoch/rate-limit window, proof generation and verification state, duplicate rejection reason, and group/root sync state or rationale.
 
 ## Recommended References
 
@@ -116,6 +147,7 @@ When building an RLN integration, produce:
 - punishment, slashing, removal, or blocking behavior;
 - commands used for build and tests;
 - audit status and privacy limitations.
+- whether the final implementation uses real proof verification or remains incomplete because mocks/scaffolding are still present.
 
 When only planning, produce the same information without code edits and clearly mark unknowns such as deployed contracts, proof artifact source, audit requirements, or slashing requirements.
 
