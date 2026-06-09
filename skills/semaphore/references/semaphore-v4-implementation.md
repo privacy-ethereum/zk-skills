@@ -4,7 +4,7 @@ Use this card when an agent needs to build a small Semaphore V4 app, especially 
 
 ## Verified Baseline
 
-Checked against `semaphore-protocol/semaphore` and npm on 2026-06-02:
+Checked against `semaphore-protocol/semaphore` and npm on 2026-06-02, and re-confirmed in a local Semaphore eval on 2026-06-09:
 
 - current npm packages seen: `@semaphore-protocol/core`, `@semaphore-protocol/proof`, and `@semaphore-protocol/contracts` at `4.14.2`;
 - `@semaphore-protocol/core` re-exports `Identity`, `Group`, `generateProof`, and `verifyProof`;
@@ -12,6 +12,7 @@ Checked against `semaphore-protocol/semaphore` and npm on 2026-06-02:
 - `verifyProof(proof)` returns `Promise<boolean>`;
 - the proof shape is `merkleTreeDepth`, `merkleTreeRoot`, `message`, `nullifier`, `scope`, `points`;
 - the Solidity interface uses `ISemaphore.SemaphoreProof` with the same fields and `validateProof(groupId, proof)`.
+- npm `4.14.2` publishes Solidity files at package-root paths such as `@semaphore-protocol/contracts/Semaphore.sol`, `@semaphore-protocol/contracts/base/SemaphoreVerifier.sol`, and `@semaphore-protocol/contracts/interfaces/ISemaphore.sol`.
 
 Re-check package versions and TypeDoc before pinning production code.
 
@@ -184,8 +185,10 @@ create table used_nullifiers (
 - proof for a different scope is rejected before side effects;
 - proof for a tampered message is rejected before side effects;
 - proof for an unknown or stale root is rejected;
-- non-member proof is rejected;
+- non-member or untrusted-root proof is rejected;
 - two concurrent duplicate submissions only create one accepted action.
+
+For a practical non-member negative test, do not expect Semaphore to generate a proof for an identity that is missing from the same group. Instead, generate a valid proof against an alternate group/root and assert the verifier or contract rejects that root as untrusted or not part of the registered group.
 
 ## Security Checks
 
@@ -229,3 +232,15 @@ struct SemaphoreProof {
 ```
 
 Call `semaphore.validateProof(groupId, proof)` for state-changing validation. The Semaphore contract stores nullifiers for the group and reverts on duplicates. Keep group creation, member management, and root duration behavior explicit in tests.
+
+For a small local Solidity harness:
+
+- import `@semaphore-protocol/contracts/Semaphore.sol`, `@semaphore-protocol/contracts/base/SemaphoreVerifier.sol`, and `@semaphore-protocol/contracts/interfaces/ISemaphore.sol`;
+- add a local import wrapper such as `OfficialSemaphoreImports.sol` if the chosen Solidity toolchain does not emit deployable artifacts for package contracts;
+- deploy `PoseidonT3` from `poseidon-solidity/PoseidonT3.sol` and link it into `Semaphore`;
+- deploy the official `SemaphoreVerifier`, then the official `Semaphore`;
+- write the app contract so it checks `proof.message` and `proof.scope`, calls `semaphore.validateProof(groupId, proof)`, and only then changes app state;
+- register only identity commitments on-chain, never identity secrets;
+- test a duplicate signal by reusing the same identity and scope, and test a second valid signal with a different registered identity.
+
+If host native Solidity tooling fails before compilation, a Docker Node LTS workflow is an acceptable eval path. Keep Docker as reproducibility guidance, not as a requirement for every Semaphore app.

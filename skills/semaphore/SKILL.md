@@ -28,6 +28,7 @@ Current app-building should target Semaphore V4 unless the existing codebase alr
 6. Choose the integration path: off-chain proof verification for prototypes, on-chain validation for contracts, or a hybrid app with off-chain proof generation and on-chain validation.
 7. Implement identity creation or recovery, group loading, proof generation, proof submission, verification, and duplicate-nullifier handling.
 8. Test with multiple identities, duplicate submissions, stale groups, invalid proofs, and small anonymity sets.
+9. Before claiming the app works, confirm the final path uses real `generateProof` plus real `verifyProof` or official contract validation. Mock verifiers, server counters, and trusted client claims are scaffolding only.
 
 ## Recommended References
 
@@ -67,6 +68,22 @@ const valid = await verifyProof(proof)
 ```
 
 For an on-chain app, keep proof generation in the client or backend and validate with the Semaphore contract. Use `Semaphore.sol` or `ISemaphore.sol` from `@semaphore-protocol/contracts`; do not write a custom verifier unless the app has a specific reason and tests.
+
+## Working App Definition Of Done
+
+A finished Semaphore app must include:
+
+- a concrete identity creation or recovery model;
+- a concrete registration or membership model with identity commitments only;
+- group state that the verifier or contract trusts;
+- app-specific scope and message encoding;
+- real proof generation with Semaphore;
+- real proof verification off-chain, on-chain, or both;
+- root, scope, message, and nullifier checks before side effects;
+- duplicate prevention through a transaction/unique constraint or the official Semaphore contract;
+- behavioral tests for valid member action, duplicate action, second member action, non-member or untrusted-root proof, tampered message, wrong scope, and stale or unknown root behavior.
+
+If any mock verifier, server-side-only counter, or client-claimed membership remains, do not describe the result as a working Semaphore app. Mark it as incomplete scaffolding and state which real proof or validation path is missing.
 
 ## App Design Checklist
 
@@ -129,6 +146,8 @@ For on-chain verification:
 - call `validateProof(groupId, proof)` for submitted proofs;
 - store accepted nullifiers or rely on the Semaphore contract behavior required by the chosen flow.
 
+For local on-chain harnesses, the official npm package exposes Solidity files at package-root paths such as `@semaphore-protocol/contracts/Semaphore.sol` and `@semaphore-protocol/contracts/interfaces/ISemaphore.sol`. If the Solidity toolchain does not emit deployable artifacts for package contracts, add a local import wrapper contract and deploy/link `PoseidonT3` before deploying `Semaphore`.
+
 When loading on-chain groups off-chain, reconstruct the group from trusted subgraph or contract data and handle stale roots. Semaphore contracts may allow old roots for a configured duration; make that duration explicit in app behavior.
 
 ## Security And Privacy Rules
@@ -152,6 +171,8 @@ For application code, run the repository's normal typecheck and test commands. A
 - on-chain validation if contracts are touched.
 
 For contract code, run unit tests against both valid and invalid proofs when fixtures are available. If proof generation is slow in CI, keep at least one integration test and use deterministic fixtures for faster unit tests.
+
+For browser apps, also exercise visible UI state for registration, proof generation, acceptance, duplicate rejection, non-member or stale-root rejection, and current vote/action counts. Screenshot capture is useful but DOM/API assertions are acceptable when screenshot tooling is flaky.
 
 Before finishing, run the security, duplicate-nullifier, root-freshness, and browser-artifact checks in `references/semaphore-v4-implementation.md`.
 
